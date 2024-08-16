@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 // 의존성주입 : 모델, 데이터소스
@@ -7,7 +8,26 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 // 의존성주입 : 컨트롤러, 미들웨어
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "ToDo API",
+        Description = "An ASP.NET Core Web API for managing ToDo items",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact = new OpenApiContact
+        {
+            Name = "Example Contact",
+            Url = new Uri("https://example.com/contact")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "Example License",
+            Url = new Uri("https://example.com/license")
+        }
+    });
+});
 var app = builder.Build();
 
 app.MapGet("/todoitems", async (TodoDb db) =>
@@ -59,10 +79,15 @@ app.MapDelete("/todoitems/{id}", async (int id, TodoDb db) =>
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+    //app.UseOpenApi();
     app.UseSwaggerUI(options => 
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
         options.RoutePrefix = string.Empty;
+        options.DocumentTitle = "TodoAPI";
+        //options.Path = "/swagger";
+        //options.DocumentPath = "/swagger/{documentName}/swagger.json";
+        //options.DocExpansion = "list";
     });
 }
 app.Run();
