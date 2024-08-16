@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 // 의존성주입 : 모델, 데이터소스
@@ -30,8 +31,19 @@ builder.Services.AddSwaggerGen(options =>
 });
 var app = builder.Build();
 
+// ↓ OpenAPI 샘플
 app.MapGet("/todoitems", async (TodoDb db) =>
-    await db.Todos.ToListAsync());
+    await db.Todos.ToListAsync())
+    .WithName("GetAllTodoItems")
+    .WithOpenApi(operation => new(operation)
+    {
+        Tags = new List<OpenApiTag> { new() { Name = "Todos" } },
+        Summary = "Get all Todo items",
+        Description = "Returns a list of all Todo items",
+    })
+    .Produces<List<Todo>>(StatusCodes.Status200OK, "application/json")
+    .Produces(StatusCodes.Status500InternalServerError);
+// ↑ OpenAPI 샘플
 
 app.MapGet("/todoitems/complete", async (TodoDb db) =>
     await db.Todos.Where(t => t.IsComplete).ToListAsync());
